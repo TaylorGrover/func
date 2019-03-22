@@ -35,62 +35,6 @@ plt.show() """
 
 def cls():
 	cmd("cls")
-def setPulleys(rad1, rad2, r1_rpm = None, r2_rpm = None):
-	if rad1 < rad2:
-		lPulley = {"radius" : rad1 }
-		bPulley = {"radius" : rad2 }
-	else:
-		lPulley = {"radius" : rad2 }
-		bPulley = {"radius" : rad1 }
-	lPulley.__setitem__("revolution", lPulley["radius"]*2*pi)
-	bPulley.__setitem__("revolution", bPulley["radius"]*2*pi)
-	if r1_rpm is not None:
-		if lPulley["radius"] == rad1:
-			lPulley.__setitem__("rpm", r1_rpm)
-		else:
-			bPulley.__setitem__("rpm", r1_rpm)
-	else:
-		if lPulley["radius"] == rad2:
-			lPulley.__setitem__("rpm", r2_rpm)
-		else:
-			bPulley.__setitem__("rpm", r2_rpm)
-			bPulley.__setitem__("dpm", tofrac())
-def f(x):
-	return x**3
-	
-def c1(x):
-	return (2*x+8)/(x**3-x**2-56*x)
-def c2(x):
-	return (-1/(7*x))+(1/(5*(x-8)))-(2/(35*(x+7)))
-def quad(a,b,c, frac= True):
-	
-	try:
-		numer1 = -b + sqrt(b**2 - 4*a*c)
-		numer2 = -b - sqrt(b**2 - 4*a*c)
-	except ValueError:
-		print("No x intercepts.")
-	
-	denom = 2*a
-	if frac:
-		x1 = simpfrac(numer1,denom)
-		x2 = simpfrac(numer2,denom)
-	else:
-		x1 = numer1/denom
-		x2 = numer2/denom
-	return "(" + str(x1) + ", 0), " + "(" + str(x2) + ", 0)"
-	
-def tofrac(val):
-
-	if val % 1 == 0:
-		return val
-	expo = len(str(val).rsplit(".")[1])
-	if expo > 8:
-		expo = 8
-	numer = int(val*10**expo)
-	denom = 10**(expo)
-	print(str(numer) + "\t" + str(denom))
-	
-	return simpfrac(numer,denom)
 #### Polar ####
 def rectangular(p):
 	return (p[0]*cos(p[1]),p[0]*sin(p[1]))	
@@ -134,7 +78,7 @@ def cross(v,u,clean=False):
 	if clean:
 		return "("+str(a)+")i-("+str(b)+")j+("+str(c)+")k"
 	else:
-		return (a,b,c)
+		return (a,-b,c)
 def decompose(v,w):
 	numer=dot(v,w)
 	scalar=numer/magnitude(w)**2
@@ -249,30 +193,6 @@ def graph(title="",length=5):
 	ax.plot_wireframe(x,y,f(x,y))
 	plt.show()
 	
-def lim(x, func):
-
-	if x != inf:
-		for i in range(1,10,1):
-			print(str(i) + "\t" + "f(" + str(x - 1*(10**-i)) + ")\t\t" + str(func(x- 1*(10**-i))))
-	else:
-		for i in range(1,9,1):
-			print(str(i) + "\t" + "f(" + str(1 *10**i) + ")\t\t" + str(func(1 *10**i)))
-
-### Partial Fraction Decomposition ###
-def decomp(x): ### This function does not take a fraction and decompose it, but it is for testing the output of the original fraction with the decomposed fraction
-	
-	A = x**5 + 44*x**3 + 484*x
-	B = x**4 + 44*x**2 + 484
-	C = x**3 + 22*x
-	D = x**2 + 22
-	E = x
-	F = 1
-	
-	output = (str(A) + "A + " + str(B) + "B + " + str(C) + "C + " + str(D) + "D + " + str(E) + "E + F = " + str(f(x)))
-	return output
-### calculus ###
-def AV(f,a,b): # returns the average velocity of a function between some interval
-	return (f(b)-f(a))/(b-a)
 def summation(k,n,func):
 	sum = 0
 	
