@@ -1,3 +1,5 @@
+#! /usr/bin/python3.5
+
 from math import radians as rad
 from math import degrees as deg
 from math import *
@@ -11,10 +13,8 @@ import os
 from os import system as cmd
 import random
 import stats as st
+import sys
 import time
-
-def f(x,y):
-    return np.sin(x+y)
 
 #plt.ion() # enables interactive mode
 global x,yrange
@@ -34,7 +34,10 @@ ax.plot_surface(x,y,z,cmap=cm.Blues)
 plt.show() """
 
 def cls():
-	cmd("cls")
+    if sys.platform is "win32":
+        cmd("cls")
+    else:
+        cmd("clear")
 #### Polar ####
 def rectangular(p):
 	return (p[0]*cos(p[1]),p[0]*sin(p[1]))	
