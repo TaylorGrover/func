@@ -34,7 +34,7 @@ ax.plot_surface(x,y,z,cmap=cm.Blues)
 plt.show() """
 
 def cls():
-    if sys.platform is "win32":
+    if sys.platform=="win32":
         cmd("cls")
     else:
         cmd("clear")
