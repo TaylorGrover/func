@@ -2,11 +2,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
-def cmd(arg):
-    os.system(arg)
-def cls():
-    cmd("cls")
-
 ### Statistics
 def pearson(x,y):
     return covariance(x,y)/(stddev(x)*stddev(y))
