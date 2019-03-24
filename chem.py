@@ -6,12 +6,6 @@ import time
 # General timer for output control
 timer = time.sleep
 
-# Useful command line functions
-def cls():
-    os.system("cls")
-def cmd(arg):
-    os.system(arg)
-
 # Avagadro's Number
 avacado = 6.022 * 10**23
 
