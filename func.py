@@ -36,11 +36,7 @@ plt.show() """
 def cls():
     if sys.platform=="win32":
         cmd("cls")
-<<<<<<< HEAD
     elif sys.platform=="linux":
-=======
-    else sys.platform=="linux":
->>>>>>> f64655c56e35ef2e4aba0eec15a5e45511ee29f2
         cmd("clear")
 #### Polar ####
 def rectangular(p):
