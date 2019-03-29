@@ -57,8 +57,9 @@ def stddev(vals = None):
         cumulative_total += (average_x - x)**2
     return np.sqrt(cumulative_total/(len(vals)-1))
 def minr(x,y):
-    m = (sum(y)-len(y)*sum(y*x)/sum(x))/(sum(x)-len(x)*sum(x**2)/sum(x))
-    b = (sum(y)-(sum(x)*sum(x*y))/sum(x**2))/(len(y)-(sum(x))**2/sum(x**2))
+    n = len(x)
+    m = (sum(y)*sum(x)-n*sum(x*y))/(sum(x)**2 - n*sum(x**2))
+    b = (sum(y)*sum(x**2) - sum(x)*sum(x*y))/(n*sum(x**2)-sum(x)**2)
     return (m,b)
 def RMSE(x,y):    # Method for finding the RMSE (Root-Mean-Square error)
     m,b = minr(x,y)

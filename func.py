@@ -245,9 +245,12 @@ def integral(f,a,b):
 		current_val += delta_x
 	print(current_val)
 	return total
-def Newtonian(f,x,val):             # Select an x that is slightly greater than the suspected value
-    while(np.abs(f(x) - val)> .000001):
-        x = x - f(x)/deriv(f,x)
+def Newtonian(f,x,val,iterations=10):             # Select an x that is slightly greater than the suspected value
+    for i in range(iterations):
+        if np.abs(f(x) - val)> .000001:
+            x = x - f(x)/deriv(f,x)
+    else:
+        return x
     return x
 def Riemann(f,a,b,n,side="mid"):
 	delta_x = (b-a)/n
