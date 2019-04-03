@@ -559,6 +559,7 @@ def btod(val):
 	
 
 # Physics
+g = 9.8 # m/s²
 class kinematic: ### Assumes constant acceleration
     def __init__(self,delta_x = None,v0 = None,vf = None,t = None,a = None):
         self.delta_x = delta_x
