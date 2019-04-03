@@ -10,7 +10,13 @@ timer = time.sleep
 avacado = 6.022 * 10**23
 
 # Ideal Gas Law Constant R
-R = .08206
+R = .08206 # atm·L/mol·K
+
+# Planck's Constant
+h = 6.626e-34 # J·s
+
+# Speed of Light (m/s)
+c = 299792458 # m/s
 
 class Element:
     def __init__(self,symbol,name,atomic_number,average_mass,period,group):
