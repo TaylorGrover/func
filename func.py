@@ -211,7 +211,7 @@ def tangentize(f):
         inc += .01
     plt.show()
 def deriv(f,x,order=1): # actually returns the approximate slope at a specific point
-    h = .000001
+    h = x/100000000
     if order is 1:
         return (f(x+h)-f(x))/h
     return deriv(lambda val : deriv(f,val,order=1),x,order-1)
