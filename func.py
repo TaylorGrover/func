@@ -1,5 +1,6 @@
 #! /usr/bin/python3.5
 
+import decimal
 from math import radians as rad
 from math import degrees as deg
 from math import *
@@ -15,6 +16,10 @@ import random
 import stats as st
 import sys
 import time
+
+def ftest(x):
+    return x**2 
+ftest2 = lambda x: x**2
 
 #plt.ion() # enables interactive mode
 global x,yrange
@@ -88,12 +93,14 @@ def decompose(v,w):
 	v1=scalar*np.array(w)
 	v2=np.array(v)-v1
 	return "v1: " + str(v1) + "\nv2: " + str(v2)
-### Matrix Algebra ###
 
+### Matrix Algebra ###
+## Calculates the deteminant of a 2x2 matrix (so basically useless)
 def det(matrix):
 	if len(matrix) is not 2:
 		raise ValueError("god")
 	return matrix[0][0]*matrix[1][1]-matrix[1][0]*matrix[0][1]
+
 ### Simplification and Exact Values ###
 def simpfrac(numer, denom):
 	
@@ -114,6 +121,7 @@ def simpfrac(numer, denom):
 	else:
 		return 1
 	return str(int(numer)) + "/" + str(int(denom))
+
 def rRad(radical):
 	factors = []
 	for i in range(radical//2,1,-1):
@@ -125,6 +133,29 @@ def rRad(radical):
 		if factors[i] is not 0:
 			reduced_integer *= factors[i]
 	return str(reduced_integer) + "*sqrt(" + str(radical) + ")"
+
+### First-Order Differential Equation Slope Field Generator.
+### 	This accepts a function of two variables: diff(x,y), representing the derivative as a function 
+###	of both x and y, plotting and display a slope field of arbitrary resolution.
+def slope_field(diff,lineColor="#bbbfff",interval=(-10,10),resolution=20):
+	dash()
+	plt.ion()
+	lineLength = .75*(interval[1]-interval[0])/resolution
+	lines = []
+	x,y = np.linspace(*interval,resolution),np.linspace(*interval,resolution)
+
+	for i in x:
+		for j in y:
+			slope = diff(i,j)
+			domain_radius = lineLength*np.cos(np.arctan(slope))/2
+			print("Line Length: " + str(np.sqrt((domain_radius*2)**2 + (lineLength*np.sin(np.arctan(slope)))**2)))
+			domain = np.linspace(i - domain_radius,i + domain_radius)
+			def func(x1,y1):
+				return slope*(domain - x1) + y1
+			lines.append(plt.plot(domain,func(i,j),color=lineColor,linewidth=2,solid_capstyle="projecting",solid_joinstyle="bevel"))
+	plt.subplots_adjust(right=1,top=1,left=0,bottom=0)
+	plt.show()
+	return lines
 	
 ### Testing the parity of a function ###
 def parity(func):
@@ -197,11 +228,10 @@ def graph(title="",length=5):
 	plt.show()
 	
 def summation(k,n,func):
-	sum = 0
-	
-	for i in range(k, n+1,1):
-		sum += func(i)
-	return sum
+	total = 0
+	for i in range(k,n+1,1):
+		total += func(i)
+	return total
 def tangentize(f):
     dash()
     inc=-5
@@ -214,7 +244,8 @@ def deriv(f,x,order=1): # actually returns the approximate slope at a specific p
     h = x/100000000
     if order is 1:
         return (f(x+h)-f(x))/h
-    return deriv(lambda val : deriv(f,val,order=1),x,order-1)
+    else:
+        return deriv(lambda val : deriv(f,val,order=1),x,order-1)
 def partial(f,*args):
     partials = []
     def resetArgs(args):
@@ -335,7 +366,6 @@ def quadratic(a,b,c):
 	return "("+str(-b)+"\u00b1"+rRad(b**2-4*a*c)+")/"+str(2*a)
 #### Derive a function based on the data points ((Incomplete)) ####
 def getfunc():
-
 	val = []
 	a = b = c = None
 	funcstr = input("Enter function: ")
@@ -350,19 +380,37 @@ def getfunc():
 				c = val[i]
 		except ValueError:
 			val.append(funcstr[i])
+## This function accepts a function argument (single variables for now) and parses through the string representation of the function's definition and locates key values
+def analyze(f):
+        import inspect as ins
+        fstring = ins.getsource(f)
+        if fstring.find("def") == 0:
+                islambda=False
+                fname=fstring.split("(")[0].split(" ")[1].strip()
+                varname=fstring.split("(")[1].split(")")[0].strip()
+                algorithm=fstring.split("return")[1].strip()
+        if fstring.split("=")[1].split(" ")[0] == "lambda":
+                islambda=True
+                fname=fstring.split("=")[0].strip(" ")
+                varname=fstring.split("lambda")[1].split(":")[0].strip()
+                algorithm=fstring.split(":")[1].strip()
+        
 
 def vertex(a,b,c,f):
 	h = -b/(2*a)
 	k = f(h)
 	return "(" + str(h) + ", " + str(k	) + ")"
 	
+# Unknown functionality
 def dist(p1,p2,retSqrt=False):
 	total=np.array(np.array(np.array(p1)-np.array(p2))**2).sum()
 	if retSqrt:
 		return str(rRad(total)) + " or " + str(np.sqrt(total))
 	else:
 		return np.sqrt(total)
-def triangle(a,b,c):
+
+# I do not remember why I wrote this
+'''def triangle(a,b,c):
 	leg1=dist(a,b)
 	leg2=dist(a,c)
 	leg3=dist(b,c)
@@ -375,7 +423,7 @@ def triangle(a,b,c):
 			
 		else:
 			print("Leg " + str(i) + ": " + str(sArr[i]))
-	return sArr
+	return sArr'''
 def midpoint(a,b):
 	a,b=np.array(a),np.array(b)
 	return (a+b)/2
@@ -384,25 +432,31 @@ def fibbonaci(length):
 	for i in range(1, length):
 		fib.append(fib[i]+fib[i-1])
 	return fib
-def pythag(leg1 = None, leg2 = None, hypo = None):
+## hypot or np.hypot does this
+'''def pythag(leg1 = None, leg2 = None, hypo = None):
 	if leg1 == None:
 		return "sqrt(" + str(hypo**2 - leg2**2) + ")"
 	elif leg2 == None:
 		return "sqrt(" + str(hypo**2 - leg1**2) + ")"
 	else:
-		return "sqrt(" + str(leg1**2 + leg2**2) + ")"
-def quadrant(ang):
+		return "sqrt(" + str(leg1**2 + leg2**2) + ")"'''
+## Not sure what the point of this was so I'm commenting it out.
+'''def quadrant(ang):
 	if cos(ang) < 0 and sin(ang) < 0:
-		return True
+		return True'''
 def lawOfCosines(sas=None,sss=None): ## Takes a side, angle (radians), and a side in an array, then returns the remaining values in an array
 	if sas is not None:
 		return np.sqrt(sas[0]**2+sas[2]**2-2*sas[0]*sas[2]*cos(sas[1]))
 	else:
 		return acos((sss[1]**2+sss[2]**2-sss[0]**2)/(2*sss[1]*sss[2]))
 	sas[0]
+
+## Heron's Formula: Find's the area of a triangle using it's three side lengths
 def hero(a,b,c):
 	s=(a+b+c)/2
 	return sqrt(s*(s-a)*(s-b)*(s-c))
+
+# Actually useful for slowing output but the time module itself has a function for doing this
 def timer(val, func = None, fVal = None, compute = None):
 	tm_val = time.time() + val
 	while tm_val - time.time() > .00001:
@@ -417,7 +471,7 @@ def timer(val, func = None, fVal = None, compute = None):
 		
 ##################################################################################################
 ### Function for finding whether two given sides and an angle form two, one, or zero triangles ###
-def SSA(side1,side2,angle1):
+'''def SSA(side1,side2,angle1):
 	try:
 		angle2i=asin(side2*sin(angle1)/side1)
 	except ValueError:
@@ -433,7 +487,7 @@ def SSA(side1,side2,angle1):
 		triDisp(tri1)
 		triDisp(tri2)
 		return [tri1,tri2]
-		
+
 def SAS(side1,angle3,side2):
 	side3=np.sqrt(side1**2+side2**2-2*side1*side2*np.cos(angle3))
 	angle2=acos((side1**2+side3**2-side2**2)/(2*side1*side3))
@@ -443,9 +497,10 @@ def SAS(side1,angle3,side2):
 	return tri
 def triDisp(tri):
 	output=str(tri[0]) + "\n" + str(tri[1]) + "\n\n" + str(tri[2]) + "\n" + str(tri[3]) + "\n\n" + str(tri[4]) + "\n" + str(tri[5]) + "\n\n\n\n"
-	return output
+	return output'''
 ##################################################################################################
-class Timer:
+# Would probably be more useful if it was multithreaded
+'''class Timer:
 	def __init__(self, val, func = None, fVal = None, countdown = False):
 		self._val = val
 		self._func = func
@@ -479,9 +534,10 @@ class Timer:
 	def setCountdown(self,isTrue):
 		self._countdown = isTrue
 	def getCountdown(self):
-		return self._countdown
+		return self._countdown'''
 		
-class Polar_Equation:
+# Not sure what the point of this was
+'''class Polar_Equation:
 	def __init__(self, start = 0, end = 2*pi, interval = .0001, r = 1):
 		self.__func = None
 		self.__theta = np.arange(start, end, interval)
@@ -522,7 +578,7 @@ class Polar_Equation:
 		if self.__func is not None:
 			randInt = random.randint(0,10)
 		else:
-			print ("Despotism and Godless Terrorism on the Home Front")	
+			print ("Despotism and Godless Terrorism on the Home Front")'''
 
 class Secant: # class for the secant line of a function between two points
 	def __init__(self, a, b, func):
@@ -559,7 +615,10 @@ def btod(val):
 	
 
 # Physics
-g = 9.8 # m/s²
+g = 9.8 			# m/s²
+elementary_charge = 1.602e-19	# elementary magnitude of the charge of a proton or electron
+epsilon_not = 8.85e-12		# C²/N·m²; permittivity constant
+G = 6.67e-11 			# N∙m²/kg²
 class kinematic: ### Assumes constant acceleration
     def __init__(self,delta_x = None,v0 = None,vf = None,t = None,a = None):
         self.delta_x = delta_x

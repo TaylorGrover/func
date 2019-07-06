@@ -2,6 +2,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
+'''
+    Equation for finding the linear regression using the least squares method:
+    m=(∑y∑x−n∑yx)/((∑x)²−n∑x²)
+    b=(∑y∑x²−∑x∑yx)/(n∑x²−(∑x)²)
+'''
+
 ### Statistics
 def pearson(x,y):
     return covariance(x,y)/(stddev(x)*stddev(y))
