@@ -3,11 +3,8 @@ import os
 import tkinter as tk
 import time
 
-# General timer for output control
-timer = time.sleep
-
 # Avagadro's Number
-avacado = 6.022 * 10**23
+avagadro = 6.022 * 10**23
 
 # Ideal Gas Law Constant R
 R = .08206 # atm·L/mol·K
@@ -18,6 +15,8 @@ h = 6.626e-34 # J·s
 # Speed of Light (m/s)
 c = 299792458 # m/s
 
+## Element class; primarily useful for intro chemistry class and performing basic arithmetic
+# on elemental masses
 class Element:
     def __init__(self,symbol,name,atomic_number,average_mass,period,group):
         self.__sym = symbol
@@ -53,6 +52,7 @@ class Element:
     def mass():
         return this.__mass
 
+# This does not contain all the elements but just the ones I needed for my class.
 Ag = Element("Ag","Silver", 47,107.87,5,11,)
 Al = Element("Al","Aluminum",13,26.98,3,13)
 Ar = Element("Ar","Argon",18,39.95,3,18)
