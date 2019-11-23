@@ -461,8 +461,9 @@ def binary_to_decimal(val):
 # Physics
 g = 9.8             # m/s²
 elementary_charge = 1.602e-19    # elementary magnitude of the charge of a proton or electron
-epsilon_not = 8.85e-12        # C²/N·m²; permittivity constant
+permittivity_constant = 8.85e-12        # C²/N·m²; permittivity constant
 G = 6.67e-11             # N∙m²/kg²
+permeability_constant = 4*pi*10**-7     # N∙s/C
 
 class kinematic: ### Assumes constant acceleration
     def __init__(self,delta_x = None,v0 = None,vf = None,t = None,a = None):

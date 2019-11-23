@@ -77,12 +77,17 @@ def stddev(vals = None):
     Equation for finding the linear regression using the least squares method:
     m=(∑y∑x−n∑yx)/((∑x)²−n∑x²)
     b=(∑y∑x²−∑x∑yx)/(n∑x²−(∑x)²)
+
 '''
+# Find the least-squared residuals (derived a more efficient algorithm 2019-11-3 ~ 0900)
+## Returns the the slope (m) and y-intercept (b) in the format: [m, b]
 def minr(x,y):
     n = len(x)
+    x = np.array(x)
+    y = np.array(y)
     m = (sum(y)*sum(x)-n*sum(x*y))/(sum(x)**2 - n*sum(x**2))
     b = (sum(y)*sum(x**2) - sum(x)*sum(x*y))/(n*sum(x**2)-sum(x)**2)
-    return (m,b)
+    return np.array([m,b])
 
 def RMSE(x,y):    # Method for finding the RMSE (Root-Mean-Square error)
     m,b = minr(x,y)
