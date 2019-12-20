@@ -148,7 +148,7 @@ def slope_field(diff,linecolor="#abc888",interval=(-10,10),resolution=20):
             domain = np.linspace(i - domain_radius,i + domain_radius,2)
             def func(x1,y1):
                 return slope*(domain - x1) + y1
-            lines.append(plt.plot(domain,func(i,j),color=linecolor,linewidth=2,solid_capstyle="projecting",solid_joinstyle="bevel"))
+            lines.append(plt.plot(domain,func(i,j),color=linecolor,linewidth=2,solid_capstyle="projecting",solid_joinstyle="bevel")[0])
     #plt.subplots_adjust(right=.999,top=.999,left=-.0001,bottom=.0001)
     plt.show()
     return lines
@@ -281,7 +281,8 @@ def deriv(f,x,order=1):
     else:
         return deriv(lambda val : deriv(f,val,order=1),x,order-1)
 
-def partial(f,*args):
+# Replaced by a better version below
+'''def partial(f,*args):
     partials = []
     def resetArgs(args):
             newAr = []
@@ -292,6 +293,16 @@ def partial(f,*args):
         newArgs = resetArgs(args)
         newArgs[i] += .000001
         partials.append((f(newArgs)-f(args[0]))/.000001)
+    return partials'''
+
+## Partial v2: pass a function f with regular parameterization, using inspect call f with correct number of arguments. Returns array of the partial derivatives at the specified point
+def partial(f,*args):
+    partials = []
+    h = .000001
+    for i in range(len(args[0])):
+        h_params = [*args[0]]
+        h_params[i] += h
+        partials.append((f(*h_params) - f(*args[0]))/h)
     return partials
 
 def cylinder(f,a,b):    # finding the volume with cylindrical shells
