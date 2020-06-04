@@ -1,3 +1,5 @@
+from decimal import Decimal
+from func import Newtonian
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -74,7 +76,7 @@ def stddev(vals = None):
 # I then set each partial derivative to zero and solved for the respective m and b
 # values to yield the minimum value of f(m,b).
 '''
-    Equation for finding the linear regression using the least squares method:
+    Equation for finding the linear regression using the least square residuals method:
     m=(∑y∑x−n∑yx)/((∑x)²−n∑x²)
     b=(∑y∑x²−∑x∑yx)/(n∑x²−(∑x)²)
 
@@ -88,6 +90,37 @@ def minr(x,y):
     m = (sum(y)*sum(x)-n*sum(x*y))/(sum(x)**2 - n*sum(x**2))
     b = (sum(y)*sum(x**2) - sum(x)*sum(x*y))/(n*sum(x**2)-sum(x)**2)
     return np.array([m,b])
+
+# Exponential Regression
+def exp_reg(x, y, iterations = 500):
+    n = len(x)
+    x = np.array(x)
+    y = np.array(y)
+    """def alpha(beta):
+        beta = Decimal(beta)
+        return Decimal((n*sum(beta**(x)*y) - sum(beta**x)*sum(y))/(n*sum(beta**(2*x)) - sum(beta**x)**2))
+    def delta(beta):
+        beta = Decimal(beta)
+        return sum(y)/n - alpha(beta)*sum(beta**x)/n
+    def f(beta):
+        beta = Decimal(beta)
+        log_b = Decimal(np.log(float(beta)))
+        return Decimal(alpha(beta)*log_b*sum(beta**(2*x))+log_b*delta(beta)*sum(beta**x)-log_b*sum(y*beta**x))"""
+
+    a = np.random.random()
+    b = np.random.random()
+    c = np.random.random()
+    d = np.random.random()
+
+    # Square residuals function
+    def residuals(a,b,c,d):
+        return sum((a*np.exp(b*x + c) + d)**2)
+
+    # Find the sum of the squared residuals
+    for i in range(iterations):
+        r_squared = residuals(a,b,c,d)
+
+    return a,b,c,d
 
 def RMSE(x,y):    # Method for finding the RMSE (Root-Mean-Square error)
     m,b = minr(x,y)

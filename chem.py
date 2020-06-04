@@ -4,7 +4,7 @@ import tkinter as tk
 import time
 
 # Avagadro's Number
-avagadro = 6.022 * 10**23
+avagadro = 6.02214076 * 10**23
 
 # Ideal Gas Law Constant R
 R = .08206 # atm·L/mol·K

@@ -1,6 +1,6 @@
 #! /usr/bin/python3.5
 
-import decimal
+from decimal import Decimal
 from math import radians as rad
 from math import degrees as deg
 from math import *
@@ -13,17 +13,20 @@ import numpy as np
 import os
 from os import system as cmd
 import random
-import stats as st
+#import stats as st
 import sys
 import time
 
 ## x is a global numpy array useful for plotting graphs of functions
 x = np.arange(-10,10,.001)
 
-def create_3d():
+def create_3d(aspect=""):
     plt.ion()
     fig = plt.figure(figsize=(50,50))
-    ax = fig.add_subplot(111,projection="3d")
+    if aspect == "equal":
+        ax = fig.add_subplot(111, aspect="equal", projection="3d")
+    else:
+        ax = fig.add_subplot(111,projection="3d")
     ax.xaxis.label.set_text("x")
     ax.yaxis.label.set_text("y")
     ax.zaxis.label.set_text("z")
@@ -45,6 +48,52 @@ def ls(withOptions = False):
         cmd("ls")
 
 #### Vectors ####     
+class V:
+    # The first element of m_a list will be taken as the magnitude and the rest as angles
+    def __init__(self,c_t=None,m_a=None):
+        if c_t != None and m_a != None:
+            raise ValueError("Can only accept either a component tuple or a magnitude/angles tuple.")
+        if c_t == None and m_a == None:
+            raise ValueError("Must pass either components or magnitude/angle list.")
+        if c_t != None:
+            self.components = np.array(c_t)
+            self._calc_mag_angles()
+        if m_a != None:
+            self.magnitude = m_a[0]
+            self.angles = m_a[1:len(m_a)]
+            self._calc_components()
+
+    def __getitem__(self,index):
+        return self.components[index]
+
+    def __len__(self):
+        return len(self.components)
+
+    def __add__(self, v):
+        if not isinstance(v, V):
+            raise ValueError("Invalid vector addition.")
+        if len(self) != len(v):
+            raise ValueError("Must add vectors of same dimensions.")
+        components = (self.components + v.components)
+        return V(list(components))
+    def __repr__(self):
+        return "Vector" + str(self.components)
+
+    def _calc_mag_angles(self):
+        self.magnitude = np.sqrt(np.sum(self.components**2))
+
+        ## TODO (Probably just going to hope that vectors don't exceed 3 dimensions and calculate the angles for spherical coordinates)
+        self.angles = None
+    def _calc_components(self):
+        theta = self.angles[0]
+        if len(self.angles) == 2:
+            r = self.magnitude
+            phi = self.angles[1]
+            self.components = np.array([r*np.sin(phi)*np.cos(theta),r*np.sin(phi)*np.sin(theta),r*np.cos(phi)])
+        if len(self.angles) == 1:
+            r = self.magnitude
+            self.components = np.array([r*np.cos(theta),r*np.sin(theta)])
+
 
 ## Returns the dot product of two vectors, but a (probably) more optimized version of this 
 # function exists in numpy.dot
@@ -66,6 +115,9 @@ def magnitude(v,string=False):
         return str(reduce_radical(total)) + " or " + str(np.sqrt(total))
     else:
         return np.sqrt(total)
+
+def distance(p1, p2):
+    return np.sqrt(sum((p1[i] - p2[i])**2 for i in range(len(p1))))
 
 def unit_vector(v):
     return np.array(v) / magnitude(v)
@@ -245,19 +297,27 @@ def getMesh(x=(-10,10),y=(-10,10),resolution=200):
 ## Sets the background 
 def stylize(xlabel = "x",ylabel = "y",ylimit = 10):
     style.use("dark_background")
-    #plt.axhline(ls = 'solid')
-    #plt.axvline(ls = 'solid')
+    hline = plt.axhline(ls = 'solid')
+    vline = plt.axvline(ls = 'solid')
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.grid(visible=True)
     plt.ylim(-ylimit,ylimit)
-    plt.subplots_adjust(right=.999,top=.999,left=-.0001,bottom=.0001)
+    plt.subplots_adjust(right=.9,top=.9,left=.100,bottom=.100)
+    return hline,vline
     
 ## Summation of a sequence (function) from k to n
-def summation(k,n,func):
+def summation(func, k,n):
     total = 0
     for i in range(k,n+1,1):
         total += func(i)
+    return total
+
+### Product of n terms
+def product(func, k, n):
+    total = 1
+    for i in range(k, n+1, 1):
+        total *= func(i)
     return total
 
 ## Returns a series of tangent lines on the interval of a to b of a function with the number of tangent 
@@ -275,6 +335,7 @@ def tangentize(f,a = -10,b = 10,resolution = 100):
 # order higher than one.
 
 def deriv(f,x,order=1): 
+    x = x
     h=.00001
     if order is 1:
         return (f(x+h)-f(x))/h
@@ -326,13 +387,12 @@ def integral(f,a,b):
     print(current_val)
     return total
 
-def Newtonian(f,x,val,iterations=10):             # Select an x that is slightly greater than the suspected value
-    for i in range(iterations):
-        if np.abs(f(x) - val)> .000001:
-            x = x - f(x)/deriv(f,x)
-    else:
-        return x
-    return x
+def Newton_Raphson(f, c_1, max_iterations=10):
+    c = []
+    c.append(c_1)
+    for i in range(max_iterations):
+        c.append(c[i] - f(c[i])/deriv(f, c[i]))
+    return c[-1]
 
 def Riemann(f,a,b,n,side="mid"):
     delta_x = (b-a)/n
@@ -375,8 +435,8 @@ def error(f,a,b,n,tms):
 def favg(f,a,b):
     return (1/(b-a))*Riemann(f,a,b,2000)
 
-def bino(n,j):
-    return fact(n)/(fact(j)*fact(n - j))
+def binomial_coefficients(n,j):
+    return factorial(n)/(factorial(j)*factorial(n - j))
 
 def expansion(x, a, deg):
     outputStr = ""
@@ -445,6 +505,16 @@ def heron(a,b,c):
     s=(a+b+c)/2
     return sqrt(s*(s-a)*(s-b)*(s-c))
 
+## Chaos Theory
+def chaos(y0, k, n):
+    from decimal import Decimal
+    y0 = Decimal(y0)
+    k = Decimal(k)
+    a = [Decimal(y0)]
+    for i in range(len(n)-1):
+        a.append(k*a[i] - k*a[i]**2)
+    return a
+
 # Actually useful for slowing output but the time module itself has a function for doing this
 def timer(val, func = None, fVal = None, compute = None):
     tm_val = time.time() + val
@@ -472,9 +542,10 @@ def binary_to_decimal(val):
 # Physics
 g = 9.8             # m/s²
 elementary_charge = 1.602e-19    # elementary magnitude of the charge of a proton or electron
-permittivity_constant = 8.85e-12        # C²/N·m²; permittivity constant
+permittivity_constant = 8.85418782e-12        # C²/N·m²; permittivity constant
 G = 6.67e-11             # N∙m²/kg²
-permeability_constant = 4*pi*10**-7     # N∙s/C
+permeability_constant = 1.25663706e-6     # N∙s/C
+planck = 6.62607004e-34 # J∙s
 
 class kinematic: ### Assumes constant acceleration
     def __init__(self,delta_x = None,v0 = None,vf = None,t = None,a = None):
