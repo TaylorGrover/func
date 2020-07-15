@@ -1,6 +1,6 @@
 #! /usr/bin/python3.5
 
-import decimal
+from decimal import Decimal
 from math import radians as rad
 from math import degrees as deg
 from math import *
@@ -13,17 +13,20 @@ import numpy as np
 import os
 from os import system as cmd
 import random
-import stats as st
+#import stats as st
 import sys
 import time
 
 ## x is a global numpy array useful for plotting graphs of functions
 x = np.arange(-10,10,.001)
 
-def create_3d():
+def create_3D(aspect=""):
     plt.ion()
     fig = plt.figure(figsize=(50,50))
-    ax = fig.add_subplot(111,projection="3d")
+    if aspect == "equal":
+        ax = fig.add_subplot(111, aspect="equal", projection="3d")
+    else:
+        ax = fig.add_subplot(111,projection="3d")
     ax.xaxis.label.set_text("x")
     ax.yaxis.label.set_text("y")
     ax.zaxis.label.set_text("z")
@@ -41,14 +44,60 @@ def cls():
     elif sys.platform=="linux":
         cmd("clear")
 
-## ls function to list the contents of the current directory
-def ls(withOptions = False):
+## ls function to list the contents of the current directory. Not necessary in ipython
+'''def ls(withOptions = False):
     if withOptions:
         cmd("ls -l")
     else:
-        cmd("ls")
+        cmd("ls")'''
 
 #### Vectors ####     
+class V:
+    # The first element of m_a list will be taken as the magnitude and the rest as angles
+    def __init__(self,c_t=None,m_a=None):
+        if c_t != None and m_a != None:
+            raise ValueError("Can only accept either a component tuple or a magnitude/angles tuple.")
+        if c_t == None and m_a == None:
+            raise ValueError("Must pass either components or magnitude/angle list.")
+        if c_t != None:
+            self.components = np.array(c_t)
+            self._calc_mag_angles()
+        if m_a != None:
+            self.magnitude = m_a[0]
+            self.angles = m_a[1:len(m_a)]
+            self._calc_components()
+
+    def __getitem__(self,index):
+        return self.components[index]
+
+    def __len__(self):
+        return len(self.components)
+
+    def __add__(self, v):
+        if not isinstance(v, V):
+            raise ValueError("Invalid vector addition.")
+        if len(self) != len(v):
+            raise ValueError("Must add vectors of same dimensions.")
+        components = (self.components + v.components)
+        return V(list(components))
+    def __repr__(self):
+        return "Vector" + str(self.components)
+
+    def _calc_mag_angles(self):
+        self.magnitude = np.sqrt(np.sum(self.components**2))
+
+        ## TODO (Probably just going to hope that vectors don't exceed 3 dimensions and calculate the angles for spherical coordinates)
+        self.angles = None
+    def _calc_components(self):
+        theta = self.angles[0]
+        if len(self.angles) == 2:
+            r = self.magnitude
+            phi = self.angles[1]
+            self.components = np.array([r*np.sin(phi)*np.cos(theta),r*np.sin(phi)*np.sin(theta),r*np.cos(phi)])
+        if len(self.angles) == 1:
+            r = self.magnitude
+            self.components = np.array([r*np.cos(theta),r*np.sin(theta)])
+
 
 ## Returns the dot product of two vectors, but a (probably) more optimized version of this 
 # function exists in numpy.dot
@@ -70,6 +119,9 @@ def magnitude(v,string=False):
         return str(reduce_radical(total)) + " or " + str(np.sqrt(total))
     else:
         return np.sqrt(total)
+
+def distance(p1, p2):
+    return np.sqrt(sum((p1[i] - p2[i])**2 for i in range(len(p1))))
 
 def unit_vector(v):
     return np.array(v) / magnitude(v)
@@ -138,7 +190,7 @@ def reduce_radical(radical):
 ## First-Order Differential Equation Slope Field Generator.
 # This accepts a function of two variables: diff(x,y), representing the derivative as a 
 # function of both x and y, plotting and display a slope field of arbitrary resolution.
-def slope_field(diff,linecolor="#abc888",interval=(-10,10),resolution=20):
+def slope_field(diff,color="#abc888",interval=(-10,10),resolution=20,linewidth=5):
     plt.ion()
     lineLength = .75*(interval[1]-interval[0])/resolution
     lines = []
@@ -152,10 +204,28 @@ def slope_field(diff,linecolor="#abc888",interval=(-10,10),resolution=20):
             domain = np.linspace(i - domain_radius,i + domain_radius,2)
             def func(x1,y1):
                 return slope*(domain - x1) + y1
-            lines.append(plt.plot(domain,func(i,j),color=linecolor,linewidth=2,solid_capstyle="projecting",solid_joinstyle="bevel")[0])
+            lines.append(plt.plot(domain,func(i,j),color=color,linewidth=linewidth,solid_capstyle="projecting",solid_joinstyle="bevel")[0])
     #plt.subplots_adjust(right=.999,top=.999,left=-.0001,bottom=.0001)
     plt.show()
     return lines
+
+## Create a vector field in two or three dimensions after passing a vector-valued function
+def vector_field(F, dim,length=.1,width = .003,color="b",resolution=12,normalize=True, domain = (-10,10)):
+    from matplotlib.colors import Normalize
+    if dim == 3:
+        norm = Normalize()
+        x,y,z = getMesh3D(x=domain,y=domain,z=domain,resolution=resolution)
+        ax = create_3D()
+        ax.quiver(x,y,z,*F(x,y,z), length=length,color=color,normalize=normalize)
+    else:
+        plt.ion()
+        fig = plt.figure(figsize=(50,50))
+        ax = fig.add_subplot(111)
+        ax.set_facecolor("#000000")
+        plt.subplots_adjust(0,0,1,1)
+        x,y = getMesh(x=domain,y=domain,resolution=resolution)
+        ax.quiver(x,y,*F(x,y),color=color,width = width)
+    return ax
 
 ## Approximates a numerical solution to first-order differential equations
 def euler_approximation(diff,x0,y0,h=.01,linecolor="r"):
@@ -245,23 +315,33 @@ def DMS(val, toMin = True,minut = None, sec = None): # Takes the entire value in
 #### Plotting and graphing
 def getMesh(x=(-10,10),y=(-10,10),resolution=200):
     return np.meshgrid(np.linspace(x[0],x[1],resolution),np.linspace(y[0],y[1],resolution))
+def getMesh3D(x=(-10,10),y=(-10,10),z =(-10,10),resolution=5):
+    return np.meshgrid(np.linspace(x[0],x[1],resolution),np.linspace(y[0],y[1],resolution),np.linspace(z[0],z[1],resolution))
 
 ## Sets the background 
 def stylize(xlabel = "x",ylabel = "y",ylimit = 10):
     style.use("dark_background")
-    #plt.axhline(ls = 'solid')
-    #plt.axvline(ls = 'solid')
+    hline = plt.axhline(ls = 'solid')
+    vline = plt.axvline(ls = 'solid')
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.grid(visible=True)
     plt.ylim(-ylimit,ylimit)
-    plt.subplots_adjust(right=.999,top=.999,left=-.0001,bottom=.0001)
+    plt.subplots_adjust(right=1,top=1,left=0,bottom=0)
+    return hline,vline
     
 ## Summation of a sequence (function) from k to n
-def summation(k,n,func):
+def summation(func, k,n):
     total = 0
     for i in range(k,n+1,1):
         total += func(i)
+    return total
+
+### Product of n terms
+def product(func, k, n):
+    total = 1
+    for i in range(k, n+1, 1):
+        total *= func(i)
     return total
 
 ## Returns a series of tangent lines on the interval of a to b of a function with the number of tangent 
@@ -279,13 +359,31 @@ def tangentize(f,a = -10,b = 10,resolution = 100):
 # order higher than one.
 
 def deriv(f,x,order=1): 
+    x = x
     h=.00001
     if order is 1:
         return (f(x+h)-f(x))/h
     else:
         return deriv(lambda val : deriv(f,val,order=1),x,order-1)
 
-# Replaced by a better version below
+## Return the divergence of a vector-valued function at a specified point
+def divergence(f,*r):
+    return np.diag(partial(f, r[0])).sum()
+
+## TODO Return the curl of a vector-valued function in 3 dimensions
+###def curl
+
+## Partial v2: pass a function f with regular parameterization. Returns list of the partial derivatives at the specified point
+def partial(f,*args):
+    partials = []
+    h = .000001
+    for i in range(len(args[0])):
+        h_params = [*args[0]]
+        h_params[i] += h
+        partials.append((f(*h_params) - f(*args[0]))/h)
+    return partials
+
+# Replaced by a better version above
 '''def partial(f,*args):
     partials = []
     def resetArgs(args):
@@ -299,15 +397,6 @@ def deriv(f,x,order=1):
         partials.append((f(newArgs)-f(args[0]))/.000001)
     return partials'''
 
-## Partial v2: pass a function f with regular parameterization, using inspect call f with correct number of arguments. Returns array of the partial derivatives at the specified point
-def partial(f,*args):
-    partials = []
-    h = .000001
-    for i in range(len(args[0])):
-        h_params = [*args[0]]
-        h_params[i] += h
-        partials.append((f(*h_params) - f(*args[0]))/h)
-    return partials
 
 def cylinder(f,a,b):    # finding the volume with cylindrical shells
     def newfunc(x):
@@ -330,13 +419,12 @@ def integral(f,a,b):
     print(current_val)
     return total
 
-def Newtonian(f,x,val,iterations=10):             # Select an x that is slightly greater than the suspected value
-    for i in range(iterations):
-        if np.abs(f(x) - val)> .000001:
-            x = x - f(x)/deriv(f,x)
-    else:
-        return x
-    return x
+def Newton_Raphson(f, c_1, max_iterations=10):
+    c = []
+    c.append(c_1)
+    for i in range(max_iterations):
+        c.append(c[i] - f(c[i])/deriv(f, c[i]))
+    return c[-1]
 
 # Sum midpoint rectangles of arbitrary size to approximate area under the curve of a function f
 def Riemann(f,a,b,n,side="mid"):
@@ -380,8 +468,8 @@ def error(f,a,b,n,tms):
 def favg(f,a,b):
     return (1/(b-a))*Riemann(f,a,b,2000)
 
-def bino(n,j):
-    return fact(n)/(fact(j)*fact(n - j))
+def binomial_coefficients(n,j):
+    return factorial(n)/(factorial(j)*factorial(n - j))
 
 def expansion(x, a, deg):
     outputStr = ""
@@ -450,6 +538,16 @@ def heron(a,b,c):
     s=(a+b+c)/2
     return sqrt(s*(s-a)*(s-b)*(s-c))
 
+## Chaos Theory
+def chaos(y0, k, n):
+    from decimal import Decimal
+    y0 = Decimal(y0)
+    k = Decimal(k)
+    a = [Decimal(y0)]
+    for i in range(len(n)-1):
+        a.append(k*a[i] - k*a[i]**2)
+    return a
+
 # Actually useful for slowing output but the time module itself has a function for doing this
 def timer(val, func = None, fVal = None, compute = None):
     tm_val = time.time() + val
@@ -477,9 +575,10 @@ def binary_to_decimal(val):
 # Physics
 g = 9.8             # m/s²
 elementary_charge = 1.602e-19    # elementary magnitude of the charge of a proton or electron
-permittivity_constant = 8.85e-12        # C²/N·m²; permittivity constant
+permittivity_constant = 8.85418782e-12        # C²/N·m²; permittivity constant
 G = 6.67e-11             # N∙m²/kg²
-permeability_constant = 4*pi*10**-7     # N∙s/C
+permeability_constant = 1.25663706e-6     # N∙s/C
+planck = 6.62607004e-34 # J∙s
 
 class kinematic: ### Assumes constant acceleration
     def __init__(self,delta_x = None,v0 = None,vf = None,t = None,a = None):

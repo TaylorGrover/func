@@ -1,13 +1,17 @@
+from decimal import Decimal
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 
 ### Set of useful statistics functions
-def pearson(x,y):
-    return covariance(x,y)/(stddev(x)*stddev(y))
+def pearson(x,y,population=True):
+    return covariance(x,y,population)/(stddev(x,population)*stddev(y,population))
 
-def covariance(x,y):
-    return sum((x-np.mean(x))*(y-np.mean(y)))/len(x)
+def covariance(x,y,population=True):
+    if population:
+        return sum((x-np.mean(x))*(y-np.mean(y)))/len(x)
+    else:
+        return sum((x - np.mean(x))*(y - np.mean(y)))/(len(x)-1)
 
 def variance(x):
     return np.sqrt((sum(x**2)-sum(x)**2/len(x))/(len(x)-1))
@@ -56,8 +60,8 @@ def average(vals = None):
         arr = vals
     return sum(vals)/len(vals)
 
-# Returns the standard deviation of a set of data
-def stddev(vals = None):
+# Returns the standard deviation of a set of data using the population or sample formula
+def stddev(vals = None, population = True):
     #if vals == None:
     #    vals = getDataPoints()
     average_x = np.mean(vals)
@@ -65,7 +69,10 @@ def stddev(vals = None):
     cumulative_total = 0
     for i, x in enumerate(vals):
         cumulative_total += (average_x - x)**2
-    return np.sqrt(cumulative_total/(len(vals)-1))
+    if population:
+        return np.sqrt(cumulative_total/len(vals))
+    else:
+        return np.sqrt(cumulative_total/(len(vals)-1))
 
 ## This function is used to find the least squared residuals of a data set and 
 # returns the slope and y-intercept of the best-fit line. Because there was not 
@@ -74,11 +81,18 @@ def stddev(vals = None):
 # I then set each partial derivative to zero and solved for the respective m and b
 # values to yield the minimum value of f(m,b).
 '''
-    Equation for finding the linear regression using the least squares method:
+    Equation for finding the linear regression using the least square residuals method:
     m=(∑y∑x−n∑yx)/((∑x)²−n∑x²)
     b=(∑y∑x²−∑x∑yx)/(n∑x²−(∑x)²)
 
 '''
+
+# Return the normal distribution function given the mean and stddev
+def normal(mean, stddev):
+    def f(x):
+        return 1/(stddev*sqrt(2*np.pi))*np.exp(-.5*(x - mean)**2/stddev**2)
+    return f
+
 # Find the least-squared residuals (derived a more efficient algorithm 2019-11-3 ~ 0900)
 ## Returns the the slope (m) and y-intercept (b) in the format: [m, b]
 def minr(x,y):
@@ -88,6 +102,37 @@ def minr(x,y):
     m = (sum(y)*sum(x)-n*sum(x*y))/(sum(x)**2 - n*sum(x**2))
     b = (sum(y)*sum(x**2) - sum(x)*sum(x*y))/(n*sum(x**2)-sum(x)**2)
     return np.array([m,b])
+
+# Exponential Regression
+def exp_reg(x, y, iterations = 500):
+    n = len(x)
+    x = np.array(x)
+    y = np.array(y)
+    """def alpha(beta):
+        beta = Decimal(beta)
+        return Decimal((n*sum(beta**(x)*y) - sum(beta**x)*sum(y))/(n*sum(beta**(2*x)) - sum(beta**x)**2))
+    def delta(beta):
+        beta = Decimal(beta)
+        return sum(y)/n - alpha(beta)*sum(beta**x)/n
+    def f(beta):
+        beta = Decimal(beta)
+        log_b = Decimal(np.log(float(beta)))
+        return Decimal(alpha(beta)*log_b*sum(beta**(2*x))+log_b*delta(beta)*sum(beta**x)-log_b*sum(y*beta**x))"""
+
+    a = np.random.random()
+    b = np.random.random()
+    c = np.random.random()
+    d = np.random.random()
+
+    # Square residuals function
+    def residuals(a,b,c,d):
+        return sum((a*np.exp(b*x + c) + d)**2)
+
+    # Find the sum of the squared residuals
+    for i in range(iterations):
+        r_squared = residuals(a,b,c,d)
+
+    return a,b,c,d
 
 def RMSE(x,y):    # Method for finding the RMSE (Root-Mean-Square error)
     m,b = minr(x,y)
