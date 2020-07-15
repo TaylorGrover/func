@@ -20,7 +20,7 @@ import time
 ## x is a global numpy array useful for plotting graphs of functions
 x = np.arange(-10,10,.001)
 
-def create_3d(aspect=""):
+def create_3D(aspect=""):
     plt.ion()
     fig = plt.figure(figsize=(50,50))
     if aspect == "equal":
@@ -40,12 +40,12 @@ def cls():
     elif sys.platform=="linux":
         cmd("clear")
 
-## ls function to list the contents of the current directory
-def ls(withOptions = False):
+## ls function to list the contents of the current directory. Not necessary in ipython
+'''def ls(withOptions = False):
     if withOptions:
         cmd("ls -l")
     else:
-        cmd("ls")
+        cmd("ls")'''
 
 #### Vectors ####     
 class V:
@@ -186,7 +186,7 @@ def reduce_radical(radical):
 ## First-Order Differential Equation Slope Field Generator.
 # This accepts a function of two variables: diff(x,y), representing the derivative as a 
 # function of both x and y, plotting and display a slope field of arbitrary resolution.
-def slope_field(diff,linecolor="#abc888",interval=(-10,10),resolution=20):
+def slope_field(diff,color="#abc888",interval=(-10,10),resolution=20,linewidth=5):
     plt.ion()
     lineLength = .75*(interval[1]-interval[0])/resolution
     lines = []
@@ -200,10 +200,28 @@ def slope_field(diff,linecolor="#abc888",interval=(-10,10),resolution=20):
             domain = np.linspace(i - domain_radius,i + domain_radius,2)
             def func(x1,y1):
                 return slope*(domain - x1) + y1
-            lines.append(plt.plot(domain,func(i,j),color=linecolor,linewidth=2,solid_capstyle="projecting",solid_joinstyle="bevel")[0])
+            lines.append(plt.plot(domain,func(i,j),color=color,linewidth=linewidth,solid_capstyle="projecting",solid_joinstyle="bevel")[0])
     #plt.subplots_adjust(right=.999,top=.999,left=-.0001,bottom=.0001)
     plt.show()
     return lines
+
+## Create a vector field in two or three dimensions after passing a vector-valued function
+def vector_field(F, dim,length=.1,width = .003,color="b",resolution=12,normalize=True, domain = (-10,10)):
+    from matplotlib.colors import Normalize
+    if dim == 3:
+        norm = Normalize()
+        x,y,z = getMesh3D(x=domain,y=domain,z=domain,resolution=resolution)
+        ax = create_3D()
+        ax.quiver(x,y,z,*F(x,y,z), length=length,color=color,normalize=normalize)
+    else:
+        plt.ion()
+        fig = plt.figure(figsize=(50,50))
+        ax = fig.add_subplot(111)
+        ax.set_facecolor("#000000")
+        plt.subplots_adjust(0,0,1,1)
+        x,y = getMesh(x=domain,y=domain,resolution=resolution)
+        ax.quiver(x,y,*F(x,y),color=color,width = width)
+    return ax
 
 ## Approximates a numerical solution to first-order differential equations
 def euler_approximation(diff,x0,y0,h=.01,linecolor="r"):
@@ -293,6 +311,8 @@ def DMS(val, toMin = True,minut = None, sec = None): # Takes the entire value in
 #### Plotting and graphing
 def getMesh(x=(-10,10),y=(-10,10),resolution=200):
     return np.meshgrid(np.linspace(x[0],x[1],resolution),np.linspace(y[0],y[1],resolution))
+def getMesh3D(x=(-10,10),y=(-10,10),z =(-10,10),resolution=5):
+    return np.meshgrid(np.linspace(x[0],x[1],resolution),np.linspace(y[0],y[1],resolution),np.linspace(z[0],z[1],resolution))
 
 ## Sets the background 
 def stylize(xlabel = "x",ylabel = "y",ylimit = 10):
@@ -303,7 +323,7 @@ def stylize(xlabel = "x",ylabel = "y",ylimit = 10):
     plt.ylabel(ylabel)
     plt.grid(visible=True)
     plt.ylim(-ylimit,ylimit)
-    plt.subplots_adjust(right=.9,top=.9,left=.100,bottom=.100)
+    plt.subplots_adjust(right=1,top=1,left=0,bottom=0)
     return hline,vline
     
 ## Summation of a sequence (function) from k to n
@@ -342,7 +362,24 @@ def deriv(f,x,order=1):
     else:
         return deriv(lambda val : deriv(f,val,order=1),x,order-1)
 
-# Replaced by a better version below
+## Return the divergence of a vector-valued function at a specified point
+def divergence(f,*r):
+    return np.diag(partial(f, r[0])).sum()
+
+## TODO Return the curl of a vector-valued function in 3 dimensions
+###def curl
+
+## Partial v2: pass a function f with regular parameterization. Returns list of the partial derivatives at the specified point
+def partial(f,*args):
+    partials = []
+    h = .000001
+    for i in range(len(args[0])):
+        h_params = [*args[0]]
+        h_params[i] += h
+        partials.append((f(*h_params) - f(*args[0]))/h)
+    return partials
+
+# Replaced by a better version above
 '''def partial(f,*args):
     partials = []
     def resetArgs(args):
@@ -356,15 +393,6 @@ def deriv(f,x,order=1):
         partials.append((f(newArgs)-f(args[0]))/.000001)
     return partials'''
 
-## Partial v2: pass a function f with regular parameterization, using inspect call f with correct number of arguments. Returns array of the partial derivatives at the specified point
-def partial(f,*args):
-    partials = []
-    h = .000001
-    for i in range(len(args[0])):
-        h_params = [*args[0]]
-        h_params[i] += h
-        partials.append((f(*h_params) - f(*args[0]))/h)
-    return partials
 
 def cylinder(f,a,b):    # finding the volume with cylindrical shells
     def newfunc(x):
