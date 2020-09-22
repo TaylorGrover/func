@@ -91,13 +91,28 @@ def stddev(vals = None, population = True):
 def get_weights(x, y, deg):
     M = np.matrix([[sum(x**(j-i)) for j in range(deg*2, deg - 1, -1)] for i in range(deg + 1)])
     s = np.matrix([sum(x**j*y) for j in range(deg, -1, -1)]).T
-    sp.Matrix(M)*sp.Matrix(s)
+    #sp.Matrix(M)*sp.Matrix(s)
     return M.I*s
 
 # polynomial approximation function
 def poly_f(x, w):
     w = np.array(w)
     return sum(x**j*w[-j-1] for j in range(len(w)-1, -1, -1))
+
+# Generate nth degree polynomial distributions
+def generate(deg = 1, domain = (-1, 1), error = 1, precision = 0.01, interval = (-10,10)):
+    coefficients = [np.random.randint(*interval) + 2*np.random.random() - 1 for i in range(deg + 1)]
+    x = np.arange(domain[0], domain[1], precision)
+    y = []
+    coefficients = np.array(coefficients)
+    def f(x):
+        terms = np.array([x**j for j in range(deg, -1, -1)])
+        return terms.dot(coefficients) + error*np.random.random() - error/2
+    for element in x:
+        y.append(f(element))
+    y = np.array(y)
+    return x,y,coefficients
+
 
 # Return the normal distribution function given the mean and stddev
 def normal(mean, stddev):
