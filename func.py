@@ -34,6 +34,10 @@ def create_3D(aspect=""):
     plt.subplots_adjust(top=1,right=1,bottom=0,left=0)
     return ax
 
+## Return 2D meshgrid
+def grid(radius=10,resolution=200):
+    return np.meshgrid(np.linspace(-radius,radius,resolution),np.linspace(-radius,radius,resolution))
+
 ## Clearing the terminal
 def cls():
     if sys.platform=="win32":
@@ -424,6 +428,7 @@ def Newton_Raphson(f, c_1, max_iterations=10):
         c.append(c[i] - f(c[i])/deriv(f, c[i]))
     return c[-1]
 
+# Sum midpoint rectangles of arbitrary size to approximate area under the curve of a function f
 def Riemann(f,a,b,n,side="mid"):
     delta_x = (b-a)/n
     total=0
