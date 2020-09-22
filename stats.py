@@ -87,6 +87,18 @@ def stddev(vals = None, population = True):
 
 '''
 
+# Get the coefficients associated with a polynomial of degree deg
+def get_weights(x, y, deg):
+    M = np.matrix([[sum(x**(j-i)) for j in range(deg*2, deg - 1, -1)] for i in range(deg + 1)])
+    s = np.matrix([sum(x**j*y) for j in range(deg, -1, -1)]).T
+    sp.Matrix(M)*sp.Matrix(s)
+    return M.I*s
+
+# polynomial approximation function
+def poly_f(x, w):
+    w = np.array(w)
+    return sum(x**j*w[-j-1] for j in range(len(w)-1, -1, -1))
+
 # Return the normal distribution function given the mean and stddev
 def normal(mean, stddev):
     def f(x):

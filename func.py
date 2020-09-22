@@ -7,6 +7,7 @@ from math import *
 from mpl_toolkits.mplot3d import axes3d
 from matplotlib import cm
 import matplotlib as mpl
+mpl.use("TkAgg")
 import matplotlib.pyplot as plt
 import matplotlib.style as style
 import numpy as np
@@ -206,21 +207,21 @@ def slope_field(diff,color="#abc888",interval=(-10,10),resolution=20,linewidth=5
     return lines
 
 ## Create a vector field in two or three dimensions after passing a vector-valued function
-def vector_field(F, dim,length=.1,width = .003,color="b",resolution=12,normalize=True, domain = (-10,10)):
+def vector_field(F, dim,ax,length=.1,width = .003,color="b",resolution=12,normalize=True, domain = (-10,10)):
     from matplotlib.colors import Normalize
     if dim == 3:
         norm = Normalize()
         x,y,z = getMesh3D(x=domain,y=domain,z=domain,resolution=resolution)
-        ax = create_3D()
-        ax.quiver(x,y,z,*F(x,y,z), length=length,color=color,normalize=normalize)
+        #ax = create_3D()
+        ax.quiver(x,y,z,*F(x,y,z), length=length,normalize=normalize)
     else:
         plt.ion()
-        fig = plt.figure(figsize=(50,50))
-        ax = fig.add_subplot(111)
+        #fig = plt.figure(figsize=(50,50))
+        #ax = fig.add_subplot(111)
         ax.set_facecolor("#000000")
         plt.subplots_adjust(0,0,1,1)
         x,y = getMesh(x=domain,y=domain,resolution=resolution)
-        ax.quiver(x,y,*F(x,y),color=color,width = width)
+        ax.quiver(x,y,*F(x,y),width = width)
     return ax
 
 ## Approximates a numerical solution to first-order differential equations
@@ -367,7 +368,8 @@ def divergence(f,*r):
     return np.diag(partial(f, r[0])).sum()
 
 ## TODO Return the curl of a vector-valued function in 3 dimensions
-###def curl
+#def curl(f, *r):
+#    operator = np.array(
 
 ## Partial v2: pass a function f with regular parameterization. Returns list of the partial derivatives at the specified point
 def partial(f,*args):
