@@ -4,30 +4,30 @@ import numpy as np
 import os
 
 ### Set of useful statistics functions
-def pearson(x,y,population=True):
-    return covariance(x,y,population)/(stddev(x,population)*stddev(y,population))
+def pearson(x, y, population = True):
+    return covariance(x, y, population) / (stddev(x, population) * stddev(y, population))
 
-def covariance(x,y,population=True):
+def covariance(x, y, population = True):
     if population:
-        return sum((x-np.mean(x))*(y-np.mean(y)))/len(x)
+        return sum((x - np.mean(x)) * (y - np.mean(y))) / len(x)
     else:
-        return sum((x - np.mean(x))*(y - np.mean(y)))/(len(x)-1)
+        return sum((x - np.mean(x)) * (y - np.mean(y))) / (len(x) - 1)
 
 def variance(x):
-    return np.sqrt((sum(x**2)-sum(x)**2/len(x))/(len(x)-1))
+    return np.sqrt((sum(x ** 2) - sum(x) ** 2 / len(x)) / (len(x) - 1))
 
 def residuals(f,vals):
     total = 0
     avg = np.mean(vals)
     for i, val in enumerate(vals):
-        total += (avg-f(val))**2
+        total += (avg - f(val)) ** 2
     return total
 
 def squares(vals):
     total = 0
     avg = np.mean(vals)
     for i, val in enumerate(vals):
-        total += (val-avg)**2
+        total += (val-avg) ** 2
     return total
 
 ## Not currently a very useful function, as it uses the python input function to get values
@@ -45,7 +45,7 @@ def getDataPoints():
     for i in range(numberOfMeasurements):
         while True:
             try:
-                arr.append(float(input("Data entry " + str(i+1) + ": ")))
+                arr.append(float(input("Data entry " + str(i + 1) + ": ")))
             except ValueError:
                 print(inputErrorMsg)
             else:
@@ -68,11 +68,11 @@ def stddev(vals = None, population = True):
     print("Average:\t" + str(average_x))
     cumulative_total = 0
     for i, x in enumerate(vals):
-        cumulative_total += (average_x - x)**2
+        cumulative_total += (average_x - x) ** 2
     if population:
-        return np.sqrt(cumulative_total/len(vals))
+        return np.sqrt(cumulative_total / len(vals))
     else:
-        return np.sqrt(cumulative_total/(len(vals)-1))
+        return np.sqrt(cumulative_total / (len(vals) - 1))
 
 ## This function is used to find the least squared residuals of a data set and 
 # returns the slope and y-intercept of the best-fit line. Because there was not 
@@ -87,37 +87,50 @@ def stddev(vals = None, population = True):
 
 '''
 
+# f_dist: Create a set data points based on some function, then return the 
+#       points 
+def f_dist(func, domain = (-1, 1), error = 1, precision = .01):
+    x = np.arange(*domain, precision)
+    y = []
+    for e in x:
+        y.append(func(e) + 2 * error * np.random.random() - error)
+    y = np.array(y)
+    return x, y
+
 # Get the coefficients associated with a polynomial of degree deg
 def get_weights(x, y, deg):
-    M = np.matrix([[sum(x**(j-i)) for j in range(deg*2, deg - 1, -1)] for i in range(deg + 1)])
-    s = np.matrix([sum(x**j*y) for j in range(deg, -1, -1)]).T
+    x = np.array(x)
+    y = np.array(y)
+    M = np.matrix([[sum(x ** (j - i)) for j in range(deg * 2, deg - 1, -1)] for i in range(deg + 1)])
+    s = np.matrix([sum(x ** j * y) for j in range(deg, -1, -1)]).T
     #sp.Matrix(M)*sp.Matrix(s)
-    return M.I*s
+    return M.I * s
 
 # polynomial approximation function
 def poly_f(x, w):
+    x = np.array(x)
     w = np.array(w)
-    return sum(x**j*w[-j-1] for j in range(len(w)-1, -1, -1))
+    return sum(x ** j * w[-j - 1] for j in range(len(w) - 1, -1, -1))
 
 # Generate nth degree polynomial distributions
-def generate(deg = 1, domain = (-1, 1), error = 1, precision = 0.01, interval = (-10,10)):
-    coefficients = [np.random.randint(*interval) + 2*np.random.random() - 1 for i in range(deg + 1)]
+def generate(deg = 1, domain = (-1, 1), error = 1, precision = 0.01, radius = 10):
+    coefficients = [2 * radius * np.random.random() - radius for i in range(deg + 1)]
     x = np.arange(domain[0], domain[1], precision)
     y = []
     coefficients = np.array(coefficients)
     def f(x):
-        terms = np.array([x**j for j in range(deg, -1, -1)])
-        return terms.dot(coefficients) + error*np.random.random() - error/2
+        terms = np.array([x ** j for j in range(deg, -1, -1)])
+        return terms.dot(coefficients) + error * np.random.random() - error / 2
     for element in x:
         y.append(f(element))
     y = np.array(y)
-    return x,y,coefficients
+    return x, y, coefficients
 
 
 # Return the normal distribution function given the mean and stddev
 def normal(mean, stddev):
     def f(x):
-        return 1/(stddev*sqrt(2*np.pi))*np.exp(-.5*(x - mean)**2/stddev**2)
+        return 1 / (stddev * sqrt(2 * np.pi)) * np.exp(-.5 * (x - mean) ** 2 / stddev ** 2)
     return f
 
 # Find the least-squared residuals (derived a more efficient algorithm 2019-11-3 ~ 0900)
@@ -126,60 +139,29 @@ def minr(x,y):
     n = len(x)
     x = np.array(x)
     y = np.array(y)
-    m = (sum(y)*sum(x)-n*sum(x*y))/(sum(x)**2 - n*sum(x**2))
-    b = (sum(y)*sum(x**2) - sum(x)*sum(x*y))/(n*sum(x**2)-sum(x)**2)
-    return np.array([m,b])
+    m = (sum(y) * sum(x) - n * sum(x * y)) / (sum(x) ** 2 - n * sum(x ** 2))
+    b = (sum(y) * sum(x ** 2) - sum(x) * sum(x * y)) / (n * sum(x ** 2) - sum(x) ** 2)
+    return np.array([m, b])
 
-# Exponential Regression
-def exp_reg(x, y, iterations = 500):
-    n = len(x)
-    x = np.array(x)
-    y = np.array(y)
-    """def alpha(beta):
-        beta = Decimal(beta)
-        return Decimal((n*sum(beta**(x)*y) - sum(beta**x)*sum(y))/(n*sum(beta**(2*x)) - sum(beta**x)**2))
-    def delta(beta):
-        beta = Decimal(beta)
-        return sum(y)/n - alpha(beta)*sum(beta**x)/n
-    def f(beta):
-        beta = Decimal(beta)
-        log_b = Decimal(np.log(float(beta)))
-        return Decimal(alpha(beta)*log_b*sum(beta**(2*x))+log_b*delta(beta)*sum(beta**x)-log_b*sum(y*beta**x))"""
-
-    a = np.random.random()
-    b = np.random.random()
-    c = np.random.random()
-    d = np.random.random()
-
-    # Square residuals function
-    def residuals(a,b,c,d):
-        return sum((a*np.exp(b*x + c) + d)**2)
-
-    # Find the sum of the squared residuals
-    for i in range(iterations):
-        r_squared = residuals(a,b,c,d)
-
-    return a,b,c,d
-
-def RMSE(x,y):    # Method for finding the RMSE (Root-Mean-Square error)
-    m,b = minr(x,y)
-    return np.sqrt(np.sum((y-m*x-b)**2))
+def RMSE(x, y):    # Method for finding the RMSE (Root-Mean-Square error)
+    m, b = minr(x, y)
+    return np.sqrt(np.sum((y - m * x - b) ** 2))
 
 ## This function was used to test the least square residuals approach to linear regression by creating a set of random values along a domain
 # and then plotting them using matplotlib.pyplot.
-def testData(total=100,max_residual=10):
-    fs=10
-    x = np.arange(0,total,.001)
-    domain=np.arange(1,total+1,1)
-    fRange=[]
+def testData(total = 100, max_residual = 10):
+    fs = 10
+    x = np.arange(0, total, .001)
+    domain = np.arange(1, total + 1,1)
+    fRange = []
     for i in range(total):
-        fRange.append(domain[i]+(2*max_residual*np.random.random()-max_residual+1000))
+        fRange.append(domain[i] + (2 * max_residual * np.random.random() - max_residual + 1000))
     fRange = np.array(fRange)
-    plt.scatter(domain,fRange) 
+    plt.scatter(domain, fRange) 
     
     # use least squares method to find best fit line for data
-    m,b = minr(domain,fRange)
-    plt.plot(x,m*x+b)
+    m,b = minr(domain, fRange)
+    plt.plot(x, m * x + b)
     print(m)
     print(b)
     plt.show()
